@@ -1,0 +1,43 @@
+import pandas as pd
+import tweepy
+import pandas
+import json
+import s3fs
+from datetime import datetime
+
+def run_twitter_etl():
+        api_key = 'JfNFxcQ1VLfMNCEmzTeywR9VX'
+        api_secret = '6mGFYx3StRbk2bHh69beg0crJVyY0s1MattuAt1jTvfYHdSOUZ'
+        access_key = '1602996894153994241-fdl7z9d3FKAUq4ZD5WYdXnKHDygTuv'
+        access_secret = 'kh42sjZx8YKJiJPMjNUVbgn1jK3Wf73g4cFsG2BOf6hoX'
+
+        #Twitter Authentication :
+        auth = tweepy.OAuthHandler(api_key, api_secret)
+        auth.set_access_token(access_key, access_secret)
+
+        #create API object:
+        api = tweepy.API(auth)
+
+        tweets = api.user_timeline(
+                screen_name = '@elonmusk',
+                count = 200,
+                include_rts = False,
+                tweet_mode = 'extended'
+        )
+
+        tweet_list = []
+
+        for i in tweets:
+                refined_tweet = {
+                        'user' : i.user.screen_name,
+                        'text' : i.full_text,
+                        'likes' : i.favorite_count,
+                        'retweet' : i.retweet_count,
+                        'Created_at' : i.created_at
+                }
+                tweet_list.append(refined_tweet)
+
+        df = pd.DataFrame(tweet_list)
+        df.to_csv('s3://twitter-api-s3/elon_musk_tweets1.csv')
+        print(df)
+run_twitter_etl()
